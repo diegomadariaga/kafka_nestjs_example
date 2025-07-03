@@ -1,49 +1,93 @@
-# API Básica con NestJS
+# Monorepo de Microservicios con NestJS y Kafka
 
-Una API REST básica construida con NestJS que incluye operaciones CRUD para gestión de usuarios.
+Un monorepo que contiene microservicios construidos con NestJS, comunicándose a través de Apache Kafka y orquestados con Docker Compose.
 
-## 🚀 Características
+## 🏗️ Arquitectura
 
-- **Framework**: NestJS
-- **Lenguaje**: TypeScript
-- **Arquitectura**: Modular
-- **Endpoints**: CRUD completo para usuarios
-- **Validaciones**: Manejo de errores HTTP
-
-## 📦 Instalación
-
-```bash
-# Instalar dependencias
-npm install
-
-# Ejecutar en modo desarrollo
-npm run start:dev
-
-# Construir el proyecto
-npm run build
-
-# Ejecutar en producción
-npm start
+```
+┌─────────────────┐    ┌─────────────────┐
+│   API Gateway   │    │     Kafka       │
+│    (Nginx)      │    │   (Message      │
+│    Port: 80     │    │    Broker)      │
+└─────────┬───────┘    └─────────────────┘
+          │                      │
+          │              ┌───────┴───────┐
+          │              │               │
+┌─────────▼───────┐    ┌─▼─────────┐   ┌─▼──────────────┐
+│ Users Service   │    │ Notifications │   │  Zookeeper     │
+│ Port: 3001      │    │ Service       │   │  Port: 2181    │
+│                 │    │ Port: 3002    │   │                │
+└─────────────────┘    └───────────────┘   └────────────────┘
 ```
 
-## 🛠️ Endpoints disponibles
+## 🚀 Microservicios
 
-### Generales
-- `GET /` - Mensaje de bienvenida
-- `GET /health` - Estado de la API
+### 1. Users Service (Puerto 3001)
+- Gestión completa de usuarios (CRUD)
+- Endpoints: `/users`
+- Base de datos en memoria (para desarrollo)
 
-### Usuarios
-- `GET /users` - Obtener todos los usuarios
-- `GET /users/:id` - Obtener un usuario por ID
-- `POST /users` - Crear un nuevo usuario
-- `PUT /users/:id` - Actualizar un usuario
-- `DELETE /users/:id` - Eliminar un usuario
+### 2. Notifications Service (Puerto 3002)
+- Gestión de notificaciones
+- Endpoints: `/notifications`
+- Soporte para email, SMS y push notifications
+
+## 📦 Inicio rápido
+
+### Prerrequisitos
+- Docker y Docker Compose
+- Node.js 18+ (para desarrollo local)
+
+### Ejecutar con Docker Compose
+```bash
+# Iniciar todos los servicios
+npm start
+
+# O en modo desarrollo con rebuild
+npm run start:dev
+
+# Detener todos los servicios
+npm run stop
+```
+
+### Desarrollo local
+```bash
+# Instalar dependencias en todos los servicios
+npm run install:all
+
+# Construir todos los servicios
+npm run build
+```
+
+## 🛠️ Endpoints del API Gateway
+
+Todos los servicios están disponibles a través del API Gateway en `http://localhost`
+
+### General
+- `GET /` - Información del API Gateway
+- `GET /health` - Estado del API Gateway
+
+### Users Service
+- `GET /api/users` - Obtener todos los usuarios
+- `GET /api/users/:id` - Obtener usuario por ID
+- `POST /api/users` - Crear nuevo usuario
+- `PUT /api/users/:id` - Actualizar usuario
+- `DELETE /api/users/:id` - Eliminar usuario
+
+### Notifications Service
+- `GET /api/notifications` - Obtener todas las notificaciones
+- `GET /api/notifications?userId=:id` - Obtener notificaciones por usuario
+- `GET /api/notifications/:id` - Obtener notificación por ID
+- `POST /api/notifications` - Crear nueva notificación
+- `PUT /api/notifications/:id` - Actualizar notificación
+- `POST /api/notifications/:id/send` - Marcar notificación como enviada
+- `DELETE /api/notifications/:id` - Eliminar notificación
 
 ## 📝 Ejemplos de uso
 
 ### Crear un usuario
 ```bash
-curl -X POST http://localhost:3000/users \
+curl -X POST http://localhost/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Ana López",
@@ -51,47 +95,66 @@ curl -X POST http://localhost:3000/users \
   }'
 ```
 
-### Obtener todos los usuarios
+### Crear una notificación
 ```bash
-curl http://localhost:3000/users
-```
-
-### Actualizar un usuario
-```bash
-curl -X PUT http://localhost:3000/users/1 \
+curl -X POST http://localhost/api/notifications \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Juan Carlos Pérez",
-    "email": "juancarlos@example.com"
+    "userId": 1,
+    "title": "Bienvenida",
+    "message": "¡Bienvenida Ana!",
+    "type": "email"
   }'
+```
+
+### Obtener notificaciones de un usuario
+```bash
+curl http://localhost/api/notifications?userId=1
 ```
 
 ## 🏗️ Estructura del proyecto
 
 ```
-src/
-├── main.ts              # Punto de entrada de la aplicación
-├── app.module.ts        # Módulo principal
-├── app.controller.ts    # Controlador principal
-├── app.service.ts       # Servicio principal
-└── users/               # Módulo de usuarios
-    ├── users.module.ts
-    ├── users.controller.ts
-    ├── users.service.ts
-    └── interfaces/
-        └── user.interface.ts
+├── services/
+│   ├── users/                 # Microservicio de usuarios
+│   │   ├── src/
+│   │   ├── Dockerfile
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   └── notifications/         # Microservicio de notificaciones
+│       ├── src/
+│       ├── Dockerfile
+│       ├── package.json
+│       └── tsconfig.json
+├── docker-compose.yml         # Orquestación de servicios
+├── nginx.conf                 # Configuración del API Gateway
+├── package.json               # Scripts del monorepo
+└── README.md
 ```
 
 ## 🔧 Tecnologías utilizadas
 
-- [NestJS](https://nestjs.com/) - Framework de Node.js
-- [TypeScript](https://www.typescriptlang.org/) - Superset de JavaScript
-- [Express](https://expressjs.com/) - Framework web para Node.js
+- **NestJS** - Framework de Node.js para microservicios
+- **TypeScript** - Superset tipado de JavaScript
+- **Apache Kafka** - Message broker para comunicación entre servicios
+- **Docker & Docker Compose** - Containerización y orquestación
+- **Nginx** - API Gateway y load balancer
+- **Zookeeper** - Coordinación de servicios para Kafka
 
-## 📖 Próximos pasos
+## 🚦 Puertos utilizados
 
-- [ ] Integración con base de datos
-- [ ] Autenticación y autorización
-- [ ] Validación de DTOs
-- [ ] Documentación con Swagger
-- [ ] Integración con Kafka
+- **80** - API Gateway (Nginx)
+- **3001** - Users Service
+- **3002** - Notifications Service
+- **9092** - Kafka Broker
+- **2181** - Zookeeper
+
+## � Próximos pasos
+
+- [ ] Implementar comunicación entre servicios via Kafka
+- [ ] Agregar autenticación y autorización
+- [ ] Implementar base de datos persistente
+- [ ] Agregar logging centralizado
+- [ ] Implementar monitoring y métricas
+- [ ] Agregar tests automatizados
+- [ ] CI/CD pipeline
