@@ -2,8 +2,24 @@
 
 Un monorepo que contiene microservicios construidos con NestJS, comunicándose a través de Apache Kafka y orquestados con Docker Compose.
 
-## 🏗️ Arquitectura
+## 🏗️ Arqu## 📈 Próximos pasos
 
+- [x] ✅ **Implementar comunicación entre servicios via Kafka**
+- [x] ✅ **Eventos automáticos de usuarios → notificaciones**
+- [ ] Agregar autenticación y autorización
+- [ ] Implementar base de datos persistente (PostgreSQL)
+- [ ] Agregar más casos de uso de Kafka (pedidos, analytics)
+- [ ] Implementar Dead Letter Queue para errores
+- [ ] Agregar logging centralizado
+- [ ] Implementar monitoring y métricas de Kafka
+- [ ] Agregar tests automatizados
+- [ ] CI/CD pipeline
+
+## 📚 Documentación adicional
+
+- [KAFKA_GUIDE.md](./KAFKA_GUIDE.md) - Guía completa de conceptos y configuración de Kafka
+- [EXAMPLES.md](./EXAMPLES.md) - Ejemplos detallados de uso de la API
+- [test-kafka.sh](./test-kafka.sh) - Script para probar el flujo completo de Kafka
 ```
 ┌─────────────────┐    ┌─────────────────┐
 │   API Gateway   │    │     Kafka       │
@@ -24,13 +40,20 @@ Un monorepo que contiene microservicios construidos con NestJS, comunicándose a
 
 ### 1. Users Service (Puerto 3001)
 - Gestión completa de usuarios (CRUD)
+- **Productor de Kafka**: Envía eventos cuando se crean/actualizan/eliminan usuarios
 - Endpoints: `/users`
 - Base de datos en memoria (para desarrollo)
 
 ### 2. Notifications Service (Puerto 3002)
 - Gestión de notificaciones
+- **Consumidor de Kafka**: Escucha eventos de usuarios y crea notificaciones automáticamente
 - Endpoints: `/notifications`
 - Soporte para email, SMS y push notifications
+
+### 3. Apache Kafka + Zookeeper
+- **Message Broker** para comunicación asíncrona entre servicios
+- **Topic principal**: `user-events`
+- **Eventos soportados**: USER_CREATED, USER_UPDATED, USER_DELETED
 
 ## 📦 Inicio rápido
 
@@ -100,17 +123,35 @@ Todos los servicios están disponibles a través del API Gateway en `http://loca
 
 ## 📝 Ejemplos de uso
 
-### Crear un usuario
+### 🔥 Flujo Completo con Kafka (Recomendado)
+
+**1. Crear un usuario (automáticamente crea notificación via Kafka):**
 ```bash
 curl -X POST http://localhost/api/users \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Ana López",
+    "name": "Ana López", 
     "email": "ana@example.com"
   }'
 ```
 
-### Crear una notificación
+**2. Verificar que se creó la notificación automáticamente:**
+```bash
+# Ver todas las notificaciones
+curl http://localhost/api/notifications
+
+# Ver notificaciones del usuario específico
+curl http://localhost/api/notifications?userId=3
+```
+
+**3. Probar el flujo completo automáticamente:**
+```bash
+./test-kafka.sh
+```
+
+### Ejemplos manuales
+
+### Crear una notificación manualmente
 ```bash
 curl -X POST http://localhost/api/notifications \
   -H "Content-Type: application/json" \
@@ -131,18 +172,24 @@ curl http://localhost/api/notifications?userId=1
 
 ```
 ├── services/
-│   ├── users/                 # Microservicio de usuarios
+│   ├── users/                 # Microservicio de usuarios + Kafka Producer
 │   │   ├── src/
+│   │   │   ├── kafka/        # Servicio de Kafka para enviar eventos
+│   │   │   └── users/        # Lógica de usuarios
 │   │   ├── Dockerfile
 │   │   ├── package.json
 │   │   └── tsconfig.json
-│   └── notifications/         # Microservicio de notificaciones
+│   └── notifications/         # Microservicio de notificaciones + Kafka Consumer
 │       ├── src/
+│       │   ├── kafka/        # Consumidor de eventos de Kafka
+│       │   └── notifications/ # Lógica de notificaciones
 │       ├── Dockerfile
 │       ├── package.json
 │       └── tsconfig.json
 ├── docker-compose.yml         # Orquestación de servicios
 ├── nginx.conf                 # Configuración del API Gateway
+├── test-kafka.sh             # Script para probar el flujo completo de Kafka
+├── KAFKA_GUIDE.md            # Guía completa de conceptos de Kafka
 ├── package.json               # Scripts del monorepo
 └── README.md
 ```
@@ -152,6 +199,7 @@ curl http://localhost/api/notifications?userId=1
 - **NestJS** - Framework de Node.js para microservicios
 - **TypeScript** - Superset tipado de JavaScript
 - **Apache Kafka** - Message broker para comunicación entre servicios
+- **KafkaJS** - Cliente de Kafka para Node.js
 - **Docker & Docker Compose** - Containerización y orquestación
 - **Nginx** - API Gateway y load balancer
 - **Zookeeper** - Coordinación de servicios para Kafka

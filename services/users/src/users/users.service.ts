@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { User, CreateUserDto, UpdateUserDto } from './interfaces/user.interface';
+import { KafkaService } from '../kafka/kafka.service';
 
 @Injectable()
 export class UsersService {
+  constructor(private readonly kafkaService: KafkaService) {}
   private users: User[] = [
     {
       id: 1,
@@ -33,6 +35,10 @@ export class UsersService {
       createdAt: new Date(),
     };
     this.users.push(newUser);
+    
+    // 🔥 ENVIAR EVENTO KAFKA cuando se crea un usuario
+    this.kafkaService.publishUserCreated(newUser);
+    
     return newUser;
   }
 
@@ -47,6 +53,9 @@ export class UsersService {
       ...updateUserDto,
     };
 
+    // 🔥 ENVIAR EVENTO KAFKA cuando se actualiza un usuario
+    this.kafkaService.publishUserUpdated(this.users[userIndex]);
+
     return this.users[userIndex];
   }
 
@@ -55,6 +64,9 @@ export class UsersService {
     if (userIndex === -1) {
       return false;
     }
+
+    // 🔥 ENVIAR EVENTO KAFKA antes de eliminar el usuario
+    this.kafkaService.publishUserDeleted(id);
 
     this.users.splice(userIndex, 1);
     return true;
