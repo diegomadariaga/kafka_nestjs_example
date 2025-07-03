@@ -13,7 +13,7 @@ Un monorepo que contiene microservicios construidos con NestJS, comunicándose a
           │                      │
           │              ┌───────┴───────┐
           │              │               │
-┌─────────▼───────┐    ┌─▼─────────┐   ┌─▼──────────────┐
+┌─────────▼───────┐    ┌─▼─────────┐   ┌─▼──────────────----┐
 │ Users Service   │    │ Notifications │   │  Zookeeper     │
 │ Port: 3001      │    │ Service       │   │  Port: 2181    │
 │                 │    │ Port: 3002    │   │                │
@@ -38,25 +38,40 @@ Un monorepo que contiene microservicios construidos con NestJS, comunicándose a
 - Docker y Docker Compose
 - Node.js 18+ (para desarrollo local)
 
+### Configuración de entorno
+```bash
+# Copia el archivo de ejemplo y configura las variables
+cp .env.example .env
+
+# Edita las variables según tu entorno
+nano .env
+```
+
 ### Ejecutar con Docker Compose
 ```bash
-# Iniciar todos los servicios
-npm start
+# Iniciar todos los servicios (desarrollo)
+./manage.sh start
 
-# O en modo desarrollo con rebuild
-npm run start:dev
+# Iniciar en entorno de producción
+./manage.sh start --env prod
+
+# Iniciar en entorno de testing
+./manage.sh start --env test
 
 # Detener todos los servicios
-npm run stop
+./manage.sh stop
 ```
 
 ### Desarrollo local
 ```bash
 # Instalar dependencias en todos los servicios
-npm run install:all
+./manage.sh install
 
-# Construir todos los servicios
-npm run build
+# Ver estado de los servicios
+./manage.sh status
+
+# Ver variables de entorno actuales
+./manage.sh env
 ```
 
 ## 🛠️ Endpoints del API Gateway
