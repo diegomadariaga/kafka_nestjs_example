@@ -7,7 +7,12 @@
     "services/*"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "kafka:up": "docker-compose up -d",
+    "kafka:down": "docker-compose down",
+    "kafka:logs": "docker-compose logs -f",
+    "kafka:ps": "docker-compose ps",
+    "kafka:clean": "docker-compose down -v"
   },
   "keywords": [],
   "author": "",
