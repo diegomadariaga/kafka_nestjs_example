@@ -23,7 +23,25 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Servicio de usuarios construido con [NestJS](https://github.com/nestjs/nest) y TypeORM. Este microservicio forma parte de una arquitectura de microservicios que utiliza Kafka para la comunicación entre servicios.
+
+## Características
+
+- ✅ API RESTful para gestión de usuarios
+- ✅ TypeORM para manejo de base de datos
+- ✅ SQLite como base de datos
+- ✅ Encriptación de contraseñas con bcrypt
+- ✅ Validación de datos con class-validator
+- ✅ Arquitectura modular con NestJS
+
+## Tecnologías utilizadas
+
+- **NestJS**: Framework para Node.js
+- **TypeORM**: ORM para TypeScript y JavaScript
+- **SQLite**: Base de datos ligera
+- **bcrypt**: Librería para encriptación de contraseñas
+- **class-validator**: Validación de DTOs
+- **class-transformer**: Transformación de objetos
 
 ## Project setup
 

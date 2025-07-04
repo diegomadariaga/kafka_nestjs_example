@@ -1,20 +1,16 @@
 import { Injectable, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { DatabaseService } from '../database/database.service';
 import { User } from '../entities/user.entity';
-
-interface DatabaseUser {
-  id: number;
-  nombre: string;
-  email: string;
-  password: string;
-  created_at: string;
-}
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
   async createUser(
     createUserDto: CreateUserDto,
@@ -22,8 +18,10 @@ export class UsersService {
     const { nombre, email, password } = createUserDto;
 
     // Verificar si el usuario ya existe
-    const existingUser: DatabaseUser | undefined =
-      await this.databaseService.getUserByEmail(email);
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+    
     if (existingUser) {
       throw new ConflictException('El email ya está registrado');
     }
@@ -32,57 +30,39 @@ export class UsersService {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Crear el usuario en la base de datos
-    const userId = await this.databaseService.createUser(
+    // Crear el usuario
+    const user = this.userRepository.create({
       nombre,
       email,
-      hashedPassword,
-    );
+      password: hashedPassword,
+    });
 
-    // Obtener el usuario creado sin la contraseña
-    const newUser: DatabaseUser | undefined =
-      await this.databaseService.getUserById(userId);
+    // Guardar el usuario en la base de datos
+    const savedUser = await this.userRepository.save(user);
 
-    if (!newUser) {
-      throw new Error('Error al crear el usuario');
-    }
-
-    return {
-      id: newUser.id,
-      nombre: newUser.nombre,
-      email: newUser.email,
-      createdAt: new Date(newUser.created_at),
-    };
+    // Retornar el usuario sin la contraseña
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = savedUser;
+    return userWithoutPassword;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const user: DatabaseUser | undefined =
-      await this.databaseService.getUserByEmail(email);
-    if (!user) {
-      return null;
-    }
-
-    return {
-      id: user.id,
-      nombre: user.nombre,
-      email: user.email,
-      password: user.password,
-      createdAt: new Date(user.created_at),
-    };
+    return await this.userRepository.findOne({
+      where: { email },
+    });
   }
 
   async findById(id: number): Promise<Omit<User, 'password'> | null> {
-    const user: DatabaseUser | undefined =
-      await this.databaseService.getUserById(id);
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
     if (!user) {
       return null;
     }
 
-    return {
-      id: user.id,
-      nombre: user.nombre,
-      email: user.email,
-      createdAt: new Date(user.created_at),
-    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 }
