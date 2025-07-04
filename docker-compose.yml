@@ -4,6 +4,7 @@ services:
     build:
       context: ./services/users
       dockerfile: Dockerfile
+    command: sh -c "npm install && npm run build && npm run start:prod"
     ports:
       - "${USERS_SERVICE_PORT}:${USERS_SERVICE_PORT}"
     environment:
@@ -28,6 +29,7 @@ services:
     build:
       context: ./services/notifications
       dockerfile: Dockerfile
+    command: sh -c "npm install && npm run build && npm run start:prod"
     ports:
       - "${NOTIFICATIONS_SERVICE_PORT}:${NOTIFICATIONS_SERVICE_PORT}"
     environment:
@@ -76,6 +78,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: ${KAFKA_INTER_BROKER_LISTENER_NAME}
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: '${KAFKA_AUTO_CREATE_TOPICS_ENABLE}'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
     networks:
       - microservices-network
     restart: unless-stopped
@@ -90,6 +93,19 @@ services:
     depends_on:
       - users-service
       - notifications-service
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Kafdrop (UI para Kafka)
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    ports:
+      - "${KAFDROP_PORT}:9000"
+    environment:
+      KAFKA_BROKERS: kafka:${KAFKA_PORT}
+    depends_on:
+      - kafka
     networks:
       - microservices-network
     restart: unless-stopped
