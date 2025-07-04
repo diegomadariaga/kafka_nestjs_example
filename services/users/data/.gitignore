@@ -1,0 +1,8 @@
+# Ignorar archivos de base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Mantener la carpeta pero ignorar su contenido
+*
+!.gitignore
