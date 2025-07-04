@@ -22,7 +22,7 @@ export class DatabaseService implements OnModuleInit {
     return new Promise((resolve, reject) => {
       // La base de datos se ubicará en la raíz del monorepo
       const dbPath = path.join(__dirname, '../../../../../users.db');
-      
+
       this.db = new sqlite3.Database(dbPath, (err) => {
         if (err) {
           console.error('Error al conectar con la base de datos:', err);
