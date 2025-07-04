@@ -1,21 +1,28 @@
-FROM node:18-alpine
+FROM node:18-alpine AS development
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias
 RUN npm install
 
-# Copiar código fuente
 COPY . .
 
-# Construir la aplicación
 RUN npm run build
 
-# Exponer puerto
+FROM node:18-alpine as production
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install --only=production
+
+COPY --from=development /usr/src/app/dist ./dist
+
 EXPOSE 3002
 
-# Comando para ejecutar la aplicación
-CMD ["npm", "run", "start"]
+CMD ["node", "dist/main"]
