@@ -7,12 +7,25 @@
     "services/*"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./scripts/start.sh",
+    "stop": "./scripts/stop.sh",
+    "logs": "./scripts/logs.sh",
+    "test": "./scripts/test.sh",
+    "status": "./scripts/status.sh",
+    "clean": "./scripts/clean.sh",
     "kafka:up": "docker-compose up -d",
     "kafka:down": "docker-compose down",
     "kafka:logs": "docker-compose logs -f",
     "kafka:ps": "docker-compose ps",
-    "kafka:clean": "docker-compose down -v"
+    "kafka:clean": "docker-compose down -v",
+    "services:up": "docker-compose up -d users-service notifications-service",
+    "services:down": "docker-compose down users-service notifications-service",
+    "services:logs": "docker-compose logs -f users-service notifications-service",
+    "all:up": "docker-compose up -d",
+    "all:down": "docker-compose down",
+    "all:logs": "docker-compose logs -f",
+    "build": "docker-compose build",
+    "rebuild": "docker-compose build --no-cache"
   },
   "keywords": [],
   "author": "",

@@ -8,7 +8,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   private producer: Producer;
 
   constructor() {
-    const brokerUrl = process.env.KAFKA_BROKER || 'localhost:9092';
+    const brokerUrl = process.env.KAFKA_BROKERS || 'localhost:9092';
     console.log('Kafka broker URL:', brokerUrl);
     
     this.kafka = new Kafka({

@@ -54,6 +54,45 @@ services:
     networks:
       - kafka-network
 
+  users-service:
+    build:
+      context: ./services/users
+      dockerfile: Dockerfile
+    container_name: users-service
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${USERS_PORT}
+      - DATABASE_PATH=${DATABASE_PATH}
+      - APP_NAME=users
+      - KAFKA_BROKERS=kafka:9092
+    ports:
+      - "${USERS_PORT}:3000"
+    volumes:
+      - ./data:/app/data
+    networks:
+      - kafka-network
+
+  notifications-service:
+    build:
+      context: ./services/notifications
+      dockerfile: Dockerfile
+    container_name: notifications-service
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${NOTIFICATIONS_PORT}
+      - APP_NAME=notifications
+      - KAFKA_BROKERS=kafka:9092
+    ports:
+      - "${NOTIFICATIONS_PORT}:3001"
+    networks:
+      - kafka-network
+
 networks:
   kafka-network:
     driver: bridge
